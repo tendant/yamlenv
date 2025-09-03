@@ -136,8 +136,8 @@ app:
 	baseFile := createTempYAML(t, baseYAML)
 
 	// Set env vars without prefix - use unique names
-	setEnvVar(t, "APPTEST__NAME", "noprefix")
-	setEnvVar(t, "APPTEST__PORT", "9000")
+	setEnvVar(t, "APP__NAME", "noprefix")
+	setEnvVar(t, "APP__PORT", "9000")
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{

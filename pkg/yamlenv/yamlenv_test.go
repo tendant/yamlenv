@@ -233,7 +233,7 @@ app:
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unmarshal config")
+	assert.Contains(t, err.Error(), "target cannot be nil")
 }
 
 // Test non-pointer target error
@@ -252,7 +252,7 @@ app:
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unmarshal config")
+	assert.Contains(t, err.Error(), "target must be a pointer")
 }
 
 // Test type mismatch error
@@ -273,7 +273,7 @@ app:
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unmarshal config")
+	assert.Contains(t, err.Error(), "load base yaml")
 }
 
 // Test empty YAML file
