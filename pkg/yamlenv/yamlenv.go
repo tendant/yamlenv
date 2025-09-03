@@ -12,11 +12,25 @@ import (
 )
 
 type LoaderOptions struct {
-	BaseFile  string // required (e.g., "config.yaml")
-	LocalFile string // optional override (e.g., "config.local.yaml")
-	EnvPrefix string // e.g., "FI_STOCK_"
-	Delimiter string // e.g., "__"
-	Target    interface{}
+	BaseFile       string // required
+	LocalFile      string // optional
+	EnvPrefix      string // e.g. "WORKING_"
+	Delimiter      string // nesting delimiter in env, e.g. "__"; "" = no nesting
+	Target         any    // &cfg
+	NormalizeDash  bool   // if true, convert "_" in ENV path to "-" in YAML keys (for kebab-case YAML like "app-name")
+	ForceLowerYAML bool   // if true, normalize YAML keys to lowercase to match ENV mapping
+	DebugKeys      bool   // if true, print final keys for debugging
+}
+
+// normalizeAllKeys rebuilds the koanf tree with normalized keys.
+func normalizeAllKeys(src *koanf.Koanf, normalizer func(string) string) *koanf.Koanf {
+	dst := koanf.New(".")
+	for _, k := range src.Keys() {
+		v := src.Get(k)
+		nk := normalizer(k)
+		dst.Set(nk, v)
+	}
+	return dst
 }
 
 // LoadConfig loads YAML + optional override + ENV into Target struct.
@@ -26,7 +40,7 @@ func LoadConfig(opts LoaderOptions) error {
 		return fmt.Errorf("delimiter cannot be empty when EnvPrefix is provided - use a non-empty delimiter like '__' for proper environment variable mapping")
 	}
 
-	// Create a new koanf instance for each call to avoid state pollution
+	// Always use a fresh instance.
 	k := koanf.New(".")
 
 	// 1) Base YAML
@@ -34,7 +48,7 @@ func LoadConfig(opts LoaderOptions) error {
 		return fmt.Errorf("load base yaml: %w", err)
 	}
 
-	// 2) Optional local overrides
+	// 2) Optional local YAML
 	if opts.LocalFile != "" {
 		if _, err := os.Stat(opts.LocalFile); err == nil {
 			if err := k.Load(file.Provider(opts.LocalFile), yaml.Parser()); err != nil {
@@ -43,19 +57,52 @@ func LoadConfig(opts LoaderOptions) error {
 		}
 	}
 
-	// 3) ENV overrides
-	if opts.EnvPrefix != "" {
-		mapper := func(key string) string {
-			key = strings.TrimPrefix(key, opts.EnvPrefix)
-			key = strings.ToLower(key)
-			return strings.ReplaceAll(key, opts.Delimiter, ".")
+	// 2.5) Normalize YAML keys (case-insensitive stability).
+	// Many teams keep YAML keys lowercase. If your YAML isn't, enabling this avoids shadow trees.
+	if opts.ForceLowerYAML {
+		k = normalizeAllKeys(k, func(key string) string {
+			return strings.ToLower(key)
+		})
+	}
+
+	// 3) ENV overrides (LAST). Map: WORKING_APP__NAME -> app.name
+	// koanf/env splits on delimiter; empty delimiter splits every rune (bad).
+	delimiterForProvider := opts.Delimiter
+	if delimiterForProvider == "" {
+		delimiterForProvider = "§§" // any token that won't appear in your env names
+	}
+
+	// Path transformer: strip prefix, lower-case, replace delimiter with dot,
+	// and optionally translate _ -> - for kebab-case YAML keys.
+	transform := func(key string) string {
+		key = strings.TrimPrefix(key, opts.EnvPrefix)
+		key = strings.ToLower(key)
+		if opts.Delimiter != "" {
+			key = strings.ReplaceAll(key, opts.Delimiter, ".")
 		}
-		if err := k.Load(env.Provider(opts.EnvPrefix, opts.Delimiter, mapper), nil); err != nil {
-			return fmt.Errorf("load env: %w", err)
+		if opts.NormalizeDash {
+			// Convert env underscores in path segments to dashes, e.g. app_name -> app-name
+			parts := strings.Split(key, ".")
+			for i := range parts {
+				parts[i] = strings.ReplaceAll(parts[i], "_", "-")
+			}
+			key = strings.Join(parts, ".")
+		}
+		return key
+	}
+
+	if err := k.Load(env.Provider(opts.EnvPrefix, delimiterForProvider, transform), nil); err != nil {
+		return fmt.Errorf("load env: %w", err)
+	}
+
+	// Optional debug: list final visible keys
+	if opts.DebugKeys {
+		for _, key := range k.Keys() {
+			fmt.Println("[yamlenv] key:", key)
 		}
 	}
 
-	// 4) Unmarshal into struct
+	// 4) Unmarshal into typed struct
 	if err := k.Unmarshal("", opts.Target); err != nil {
 		return fmt.Errorf("unmarshal config: %w", err)
 	}
