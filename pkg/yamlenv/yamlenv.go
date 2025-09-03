@@ -11,8 +11,6 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-var k = koanf.New(".")
-
 type LoaderOptions struct {
 	BaseFile  string // required (e.g., "config.yaml")
 	LocalFile string // optional override (e.g., "config.local.yaml")
@@ -23,6 +21,9 @@ type LoaderOptions struct {
 
 // LoadConfig loads YAML + optional override + ENV into Target struct.
 func LoadConfig(opts LoaderOptions) error {
+	// Create a new koanf instance for each call to avoid state pollution
+	k := koanf.New(".")
+
 	// 1) Base YAML
 	if err := k.Load(file.Provider(opts.BaseFile), yaml.Parser()); err != nil {
 		return fmt.Errorf("load base yaml: %w", err)
@@ -38,13 +39,15 @@ func LoadConfig(opts LoaderOptions) error {
 	}
 
 	// 3) ENV overrides
-	mapper := func(key string) string {
-		key = strings.TrimPrefix(key, opts.EnvPrefix)
-		key = strings.ToLower(key)
-		return strings.ReplaceAll(key, opts.Delimiter, ".")
-	}
-	if err := k.Load(env.Provider(opts.EnvPrefix, opts.Delimiter, mapper), nil); err != nil {
-		return fmt.Errorf("load env: %w", err)
+	if opts.EnvPrefix != "" {
+		mapper := func(key string) string {
+			key = strings.TrimPrefix(key, opts.EnvPrefix)
+			key = strings.ToLower(key)
+			return strings.ReplaceAll(key, opts.Delimiter, ".")
+		}
+		if err := k.Load(env.Provider(opts.EnvPrefix, opts.Delimiter, mapper), nil); err != nil {
+			return fmt.Errorf("load env: %w", err)
+		}
 	}
 
 	// 4) Unmarshal into struct
