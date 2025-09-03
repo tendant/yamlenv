@@ -7,8 +7,8 @@ A Go library for loading configuration from multiple sources with priority-based
 - **Multi-source configuration**: Load from base YAML, optional local overrides, and environment variables
 - **Priority-based merging**: Environment variables override local YAML, which overrides base YAML
 - **Flexible environment mapping**: Configurable prefix and delimiter for environment variable mapping
-- **Struct-based configuration**: Direct unmarshaling into Go structs with koanf tags
-- **Built on koanf**: Leverages the powerful [koanf](https://github.com/knadh/koanf) configuration library
+- **Struct-based configuration**: Direct unmarshaling into Go structs with standard yaml tags
+- **Direct implementation**: Lightweight implementation using only `gopkg.in/yaml.v3` without heavy dependencies
 
 ## Installation
 
@@ -28,13 +28,13 @@ import (
 
 type Config struct {
     App struct {
-        Name string `koanf:"name"`
-        Port int    `koanf:"port"`
-    } `koanf:"app"`
+        Name string `yaml:"name"`
+        Port int    `yaml:"port"`
+    } `yaml:"app"`
     DB struct {
-        Host string `koanf:"host"`
-        Port int    `koanf:"port"`
-    } `koanf:"db"`
+        Host string `yaml:"host"`
+        Port int    `yaml:"port"`
+    } `yaml:"db"`
 }
 
 func main() {
@@ -118,18 +118,18 @@ database:
 ```go
 type Config struct {
     App struct {
-        Name  string `koanf:"name"`
-        Port  int    `koanf:"port"`
-        Debug bool   `koanf:"debug"`
-    } `koanf:"app"`
+        Name  string `yaml:"name"`
+        Port  int    `yaml:"port"`
+        Debug bool   `yaml:"debug"`
+    } `yaml:"app"`
     
     Database struct {
-        Host string `koanf:"host"`
-        Port int    `koanf:"port"`
-        Name string `koanf:"name"`
-    } `koanf:"database"`
+        Host string `yaml:"host"`
+        Port int    `yaml:"port"`
+        Name string `yaml:"name"`
+    } `yaml:"database"`
     
-    Timeout time.Duration `koanf:"timeout"`
+    Timeout time.Duration `yaml:"timeout"`
 }
 ```
 
@@ -204,7 +204,7 @@ Common error scenarios:
 2. **Use local files for development**: Keep `config.local.yaml` in `.gitignore` for local development overrides
 3. **Environment variables for deployment**: Use environment variables to override settings in different deployment environments
 4. **Validate configuration**: Add validation logic after loading configuration
-5. **Use appropriate koanf tags**: Ensure your struct fields have proper `koanf` tags
+5. **Use standard yaml tags**: Ensure your struct fields have proper `yaml` tags
 
 ## License
 

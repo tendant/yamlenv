@@ -146,11 +146,11 @@ database:
 
 	type CaseConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+		} `yaml:"app"`
 		Database struct {
-			Hostname string `koanf:"hostname"`
-		} `koanf:"database"`
+			Hostname string `yaml:"hostname"`
+		} `yaml:"database"`
 	}
 
 	var cfg CaseConfig
@@ -185,10 +185,10 @@ server:
 
 	type TypesConfig struct {
 		Server struct {
-			Timeout time.Duration `koanf:"timeout"`
-			Enabled bool          `koanf:"enabled"`
-			Port    int           `koanf:"port"`
-		} `koanf:"server"`
+			Timeout time.Duration `yaml:"timeout"`
+			Enabled bool          `yaml:"enabled"`
+			Port    int           `yaml:"port"`
+		} `yaml:"server"`
 	}
 
 	var cfg TypesConfig
@@ -259,14 +259,14 @@ db:
 	// Use the same struct as the demo
 	type DemoConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-			Port int    `koanf:"port"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+			Port int    `yaml:"port"`
+		} `yaml:"app"`
 		DB struct {
-			Host string `koanf:"host"`
-			Port int    `koanf:"port"`
-		} `koanf:"db"`
-		Timeout time.Duration `koanf:"timeout"`
+			Host string `yaml:"host"`
+			Port int    `yaml:"port"`
+		} `yaml:"db"`
+		Timeout time.Duration `yaml:"timeout"`
 	}
 
 	var cfg DemoConfig

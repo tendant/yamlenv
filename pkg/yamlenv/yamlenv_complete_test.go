@@ -235,25 +235,25 @@ logging:
 
 	type FullConfig struct {
 		Server struct {
-			Host string `koanf:"host"`
-			Port int    `koanf:"port"`
-			SSL  bool   `koanf:"ssl"`
-		} `koanf:"server"`
+			Host string `yaml:"host"`
+			Port int    `yaml:"port"`
+			SSL  bool   `yaml:"ssl"`
+		} `yaml:"server"`
 		Database struct {
-			Driver string `koanf:"driver"`
-			Host   string `koanf:"host"`
-			Port   int    `koanf:"port"`
-			Name   string `koanf:"name"`
-			SSL    bool   `koanf:"ssl"`
-		} `koanf:"database"`
+			Driver string `yaml:"driver"`
+			Host   string `yaml:"host"`
+			Port   int    `yaml:"port"`
+			Name   string `yaml:"name"`
+			SSL    bool   `yaml:"ssl"`
+		} `yaml:"database"`
 		Logging struct {
-			Level  string `koanf:"level"`
-			Format string `koanf:"format"`
-		} `koanf:"logging"`
+			Level  string `yaml:"level"`
+			Format string `yaml:"format"`
+		} `yaml:"logging"`
 		Cache struct {
-			TTL  time.Duration `koanf:"ttl"`
-			Size int           `koanf:"size"`
-		} `koanf:"cache"`
+			TTL  time.Duration `yaml:"ttl"`
+			Size int           `yaml:"size"`
+		} `yaml:"cache"`
 	}
 
 	var cfg FullConfig

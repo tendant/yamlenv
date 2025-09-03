@@ -123,12 +123,8 @@ func applyEnvOverrides(val reflect.Value, envPrefix, delimiter string, normalize
 			continue
 		}
 
-		// Get yaml or koanf tag or use field name  
+		// Get yaml tag or use field name
 		yamlTag := fieldType.Tag.Get("yaml")
-		if yamlTag == "" {
-			// Fallback to koanf tag for compatibility
-			yamlTag = fieldType.Tag.Get("koanf")
-		}
 		if yamlTag == "-" {
 			continue
 		}

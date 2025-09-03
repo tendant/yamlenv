@@ -9,14 +9,14 @@ import (
 
 type Config struct {
 	App struct {
-		Name string `koanf:"name"`
-		Port int    `koanf:"port"`
-	} `koanf:"app"`
+		Name string `yaml:"name"`
+		Port int    `yaml:"port"`
+	} `yaml:"app"`
 	DB struct {
-		Host string `koanf:"host"`
-		Port int    `koanf:"port"`
-	} `koanf:"db"`
-	Timeout time.Duration `koanf:"timeout"`
+		Host string `yaml:"host"`
+		Port int    `yaml:"port"`
+	} `yaml:"db"`
+	Timeout time.Duration `yaml:"timeout"`
 }
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// These tests are designed to run in isolation to avoid issues with the global koanf instance
+// These tests are designed to run in isolation to ensure clean state
 // Each test should be run separately to ensure clean state
 
 // Test environment variable functionality in isolation

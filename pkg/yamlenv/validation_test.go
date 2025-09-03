@@ -18,8 +18,8 @@ app:
 
 	type TestConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+		} `yaml:"app"`
 	}
 
 	var cfg TestConfig
@@ -47,8 +47,8 @@ app:
 
 	type TestConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+		} `yaml:"app"`
 	}
 
 	var cfg TestConfig
@@ -75,8 +75,8 @@ app:
 
 	type TestConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+		} `yaml:"app"`
 	}
 
 	var cfg TestConfig

@@ -12,17 +12,17 @@ import (
 // Test configuration struct
 type TestConfig struct {
 	App struct {
-		Name  string `koanf:"name"`
-		Port  int    `koanf:"port"`
-		Debug bool   `koanf:"debug"`
-	} `koanf:"app"`
+		Name  string `yaml:"name"`
+		Port  int    `yaml:"port"`
+		Debug bool   `yaml:"debug"`
+	} `yaml:"app"`
 	DB struct {
-		Host string `koanf:"host"`
-		Port int    `koanf:"port"`
-		Name string `koanf:"name"`
-	} `koanf:"db"`
-	Timeout time.Duration `koanf:"timeout"`
-	Version string        `koanf:"version"`
+		Host string `yaml:"host"`
+		Port int    `yaml:"port"`
+		Name string `yaml:"name"`
+	} `yaml:"db"`
+	Timeout time.Duration `yaml:"timeout"`
+	Version string        `yaml:"version"`
 }
 
 // Helper function to create temporary YAML files
@@ -319,14 +319,14 @@ func TestLoadConfig_DemoCompatibility(t *testing.T) {
 	// Use the same struct as in cmd/demo/main.go
 	type DemoConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-			Port int    `koanf:"port"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+			Port int    `yaml:"port"`
+		} `yaml:"app"`
 		DB struct {
-			Host string `koanf:"host"`
-			Port int    `koanf:"port"`
-		} `koanf:"db"`
-		Timeout time.Duration `koanf:"timeout"`
+			Host string `yaml:"host"`
+			Port int    `yaml:"port"`
+		} `yaml:"db"`
+		Timeout time.Duration `yaml:"timeout"`
 	}
 
 	// Use similar YAML structure as demo

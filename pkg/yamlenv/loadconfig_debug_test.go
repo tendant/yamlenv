@@ -33,12 +33,12 @@ db:
 	// Test struct - same as debug test
 	type DebugConfig struct {
 		App struct {
-			Name string `koanf:"name"`
-			Port int    `koanf:"port"`
-		} `koanf:"app"`
+			Name string `yaml:"name"`
+			Port int    `yaml:"port"`
+		} `yaml:"app"`
 		DB struct {
-			Host string `koanf:"host"`
-		} `koanf:"db"`
+			Host string `yaml:"host"`
+		} `yaml:"db"`
 	}
 
 	var cfg DebugConfig
