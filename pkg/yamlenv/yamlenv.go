@@ -21,6 +21,11 @@ type LoaderOptions struct {
 
 // LoadConfig loads YAML + optional override + ENV into Target struct.
 func LoadConfig(opts LoaderOptions) error {
+	// Validate that delimiter is not empty when EnvPrefix is provided
+	if opts.EnvPrefix != "" && opts.Delimiter == "" {
+		return fmt.Errorf("delimiter cannot be empty when EnvPrefix is provided - use a non-empty delimiter like '__' for proper environment variable mapping")
+	}
+
 	// Create a new koanf instance for each call to avoid state pollution
 	k := koanf.New(".")
 
