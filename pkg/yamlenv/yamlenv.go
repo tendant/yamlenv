@@ -103,7 +103,13 @@ func LoadConfig(opts LoaderOptions) error {
 	}
 
 	// 4) Unmarshal into typed struct
-	if err := k.Unmarshal("", opts.Target); err != nil {
+	// WORKAROUND: Create a fresh koanf instance and manually copy all values to avoid unmarshaling bug
+	freshK := koanf.New(".")
+	for key, value := range k.All() {
+		freshK.Set(key, value)
+	}
+	
+	if err := freshK.Unmarshal("", opts.Target); err != nil {
 		return fmt.Errorf("unmarshal config: %w", err)
 	}
 
