@@ -34,7 +34,7 @@ version: "1.0.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "ENVTEST_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -78,11 +78,11 @@ version: "1.1.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: localFile,
-		EnvPrefix: "PRIORITY_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource:  FileSource(baseFile),
+		LocalSource: FileSource(localFile),
+		EnvPrefix:   "PRIORITY_",
+		Delimiter:   "__",
+		Target:      &cfg,
 	})
 
 	require.NoError(t, err)
@@ -115,7 +115,7 @@ db:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "DELIM_",
 		Delimiter: "_",
 		Target:    &cfg,
@@ -143,7 +143,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "", // No prefix
 		Delimiter: "__",
 		Target:    &cfg,
@@ -178,7 +178,7 @@ version: "2.1.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "COMPLEX_",
 		Delimiter: "__",
 		Target:    &cfg,

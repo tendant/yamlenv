@@ -77,7 +77,7 @@ version: "1.0.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   &cfg,
 	})
 
@@ -118,9 +118,9 @@ db:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: localFile,
-		Target:    &cfg,
+		BaseSource:  FileSource(baseFile),
+		LocalSource: FileSource(localFile),
+		Target:      &cfg,
 	})
 
 	require.NoError(t, err)
@@ -139,12 +139,12 @@ db:
 func TestLoadConfig_MissingBaseFile(t *testing.T) {
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: "nonexistent.yaml",
+		BaseSource: FileSource("nonexistent.yaml"),
 		Target:   &cfg,
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "load base yaml")
+	assert.Contains(t, err.Error(), "load base config")
 }
 
 // Test invalid base YAML error
@@ -160,12 +160,12 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   &cfg,
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "load base yaml")
+	assert.Contains(t, err.Error(), "load base config")
 }
 
 // Test invalid local YAML error
@@ -186,13 +186,13 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: localFile,
-		Target:    &cfg,
+		BaseSource:  FileSource(baseFile),
+		LocalSource: FileSource(localFile),
+		Target:      &cfg,
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "load local yaml")
+	assert.Contains(t, err.Error(), "load local config")
 }
 
 // Test missing local file (should be ignored)
@@ -207,9 +207,8 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: "nonexistent-local.yaml",
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		Target:     &cfg,
 	})
 
 	// Should succeed - missing local file is optional
@@ -228,7 +227,7 @@ app:
 	baseFile := createTempYAML(t, baseYAML)
 
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   nil,
 	})
 
@@ -247,7 +246,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   cfg, // Not a pointer
 	})
 
@@ -268,12 +267,12 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   &cfg,
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "load base yaml")
+	assert.Contains(t, err.Error(), "load base config")
 }
 
 // Test empty YAML file
@@ -282,7 +281,7 @@ func TestLoadConfig_EmptyYAML(t *testing.T) {
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   &cfg,
 	})
 
@@ -304,7 +303,7 @@ func TestLoadConfig_CommentsOnlyYAML(t *testing.T) {
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile: baseFile,
+		BaseSource: FileSource(baseFile),
 		Target:   &cfg,
 	})
 
@@ -344,11 +343,10 @@ timeout: 30s
 
 	var cfg DemoConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: "nonexistent.local.yaml", // Should be ignored
-		EnvPrefix: "SAMPLE_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "SAMPLE_",
+		Delimiter:  "__",
+		Target:     &cfg,
 	})
 
 	require.NoError(t, err)
@@ -387,7 +385,7 @@ version: "1.0.0"
 	for i := 0; i < b.N; i++ {
 		var cfg TestConfig
 		err := LoadConfig(LoaderOptions{
-			BaseFile: tmpFile.Name(),
+			BaseSource: FileSource(tmpFile.Name()),
 			Target:   &cfg,
 		})
 		if err != nil {

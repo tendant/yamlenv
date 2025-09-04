@@ -8,6 +8,8 @@ A Go library for loading configuration from multiple sources with priority-based
 - **Priority-based merging**: Environment variables override local YAML, which overrides base YAML
 - **Flexible environment mapping**: Configurable prefix and delimiter for environment variable mapping
 - **Struct-based configuration**: Direct unmarshaling into Go structs with standard yaml tags
+- **Embedded filesystem support**: Load configuration files from Go's embed.FS for single binary deployments
+- **Generic IO interface**: Use any data source that implements `io.Reader` - files, embedded files, HTTP responses, or in-memory data
 - **Direct implementation**: Lightweight implementation using only `gopkg.in/yaml.v3` without heavy dependencies
 
 ## Installation
@@ -40,11 +42,11 @@ type Config struct {
 func main() {
     var cfg Config
     err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
-        BaseFile:  "config.yaml",
-        LocalFile: "config.local.yaml", // optional
-        EnvPrefix: "MYAPP_",
-        Delimiter: "__",
-        Target:    &cfg,
+        BaseSource:  yamlenv.FileSource("config.yaml"),
+        LocalSource: yamlenv.FileSource("config.local.yaml"), // optional
+        EnvPrefix:   "MYAPP_",
+        Delimiter:   "__",
+        Target:      &cfg,
     })
     if err != nil {
         panic(err)
@@ -68,12 +70,35 @@ yamlenv loads configuration in the following order (later sources override earli
 
 ```go
 type LoaderOptions struct {
-    BaseFile  string      // Required: path to base YAML file
-    LocalFile string      // Optional: path to local override YAML file
-    EnvPrefix string      // Environment variable prefix (e.g., "MYAPP_")
-    Delimiter string      // Environment variable delimiter (e.g., "__")
-    Target    interface{} // Pointer to struct to unmarshal into
+    BaseSource  ConfigSource // Required: function that returns base config reader
+    LocalSource ConfigSource // Optional: function that returns local override config reader
+    EnvPrefix   string       // Environment variable prefix (e.g., "MYAPP_")
+    Delimiter   string       // Environment variable delimiter (e.g., "__")
+    Target      interface{}  // Pointer to struct to unmarshal into
 }
+```
+
+### ConfigSource
+
+`ConfigSource` is a function type that returns an `io.ReadCloser`:
+
+```go
+type ConfigSource func() (io.ReadCloser, error)
+```
+
+### Built-in ConfigSource Factories
+
+yamlenv provides several built-in factories to create `ConfigSource` instances:
+
+```go
+// FileSource creates a ConfigSource from a file path
+func FileSource(filename string) ConfigSource
+
+// EmbedSource creates a ConfigSource from an embedded filesystem
+func EmbedSource(fsys fs.FS, filename string) ConfigSource
+
+// ReaderSource creates a ConfigSource from an io.Reader (useful for testing)
+func ReaderSource(reader io.Reader) ConfigSource
 ```
 
 ### LoadConfig
@@ -140,11 +165,11 @@ func loadConfig() (*Config, error) {
     var cfg Config
     
     err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
-        BaseFile:  "config.yaml",
-        LocalFile: "config.local.yaml",
-        EnvPrefix: "MYAPP_",
-        Delimiter: "__",
-        Target:    &cfg,
+        BaseSource:  yamlenv.FileSource("config.yaml"),
+        LocalSource: yamlenv.FileSource("config.local.yaml"),
+        EnvPrefix:   "MYAPP_",
+        Delimiter:   "__",
+        Target:      &cfg,
     })
     
     return &cfg, err
@@ -177,6 +202,117 @@ export MYAPP_APP__NAME="production-app"
 export MYAPP_APP__PORT="9000"
 export MYAPP_DATABASE__HOST="prod-db.example.com"
 export MYAPP_DATABASE__PORT="5433"
+```
+
+## Embedded Filesystem Support
+
+yamlenv supports loading configuration files from Go's embedded filesystem (`embed.FS`), which is useful for building single-binary applications with embedded configuration files.
+
+### Example with embed.FS
+
+```go
+package main
+
+import (
+    "embed"
+    "fmt"
+    "github.com/tendant/yamlenv/pkg/yamlenv"
+)
+
+//go:embed configs/*.yaml
+var configFS embed.FS
+
+type Config struct {
+    App struct {
+        Name string `yaml:"name"`
+        Port int    `yaml:"port"`
+    } `yaml:"app"`
+    DB struct {
+        Host string `yaml:"host"`
+        Port int    `yaml:"port"`
+    } `yaml:"db"`
+}
+
+func main() {
+    var cfg Config
+    
+    err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
+        BaseSource:  yamlenv.EmbedSource(configFS, "configs/config.yaml"),
+        LocalSource: yamlenv.EmbedSource(configFS, "configs/config.local.yaml"), // optional
+        EnvPrefix:   "MYAPP_",
+        Delimiter:   "__",
+        Target:      &cfg,
+    })
+    
+    if err != nil {
+        panic(err)
+    }
+    
+    fmt.Printf("Config: %+v\n", cfg)
+}
+```
+
+### Directory Structure for Embedded Configs
+
+```
+your-project/
+├── main.go
+├── configs/
+│   ├── config.yaml       # base configuration
+│   └── config.local.yaml # optional local overrides
+└── go.mod
+```
+
+With this setup, both configuration files are embedded into your binary at build time, and you can still override values using environment variables at runtime.
+
+## Advanced Usage
+
+### Using Custom ConfigSources
+
+You can create custom `ConfigSource` functions for any data source:
+
+```go
+// Load config from HTTP endpoint
+func HttpSource(url string) yamlenv.ConfigSource {
+    return func() (io.ReadCloser, error) {
+        resp, err := http.Get(url)
+        if err != nil {
+            return nil, err
+        }
+        return resp.Body, nil
+    }
+}
+
+// Load config from in-memory string
+func StringSource(content string) yamlenv.ConfigSource {
+    return yamlenv.ReaderSource(strings.NewReader(content))
+}
+
+// Usage
+var cfg Config
+err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
+    BaseSource: HttpSource("https://config.example.com/base.yaml"),
+    LocalSource: StringSource("app:\n  debug: true"),
+    Target: &cfg,
+})
+```
+
+### Mixing Different Sources
+
+You can mix and match different source types:
+
+```go
+//go:embed base-config.yaml
+var baseConfigFS embed.FS
+
+var cfg Config
+err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
+    BaseSource:  yamlenv.EmbedSource(baseConfigFS, "base-config.yaml"), // From embedded FS
+    LocalSource: yamlenv.FileSource("local.yaml"),                      // From file system
+    EnvPrefix:   "APP_",
+    Delimiter:   "__",
+    Target:      &cfg,
+})
 ```
 
 ## Error Handling

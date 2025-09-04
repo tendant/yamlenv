@@ -40,10 +40,10 @@ app:
 
 	var cfg TestConfig
 	err = LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		EnvPrefix: "DEBUG_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "DEBUG_",
+		Delimiter:  "__",
+		Target:     &cfg,
 	})
 
 	require.NoError(t, err)

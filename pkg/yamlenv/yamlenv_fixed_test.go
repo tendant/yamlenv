@@ -35,7 +35,7 @@ version: "1.0.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "MYAPP_", // Must match the prefix in env vars exactly
 		Delimiter: "__",     // Must match the delimiter in env vars exactly
 		Target:    &cfg,
@@ -67,7 +67,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "WRONG_", // Different from env var prefix
 		Delimiter: "__",
 		Target:    &cfg,
@@ -92,7 +92,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "DELIM_",
 		Delimiter: "__", // Expecting double underscore, but env var uses single
 		Target:    &cfg,
@@ -117,7 +117,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "DELIM_",
 		Delimiter: "_", // Matching the single underscore in env var
 		Target:    &cfg,
@@ -155,7 +155,7 @@ database:
 
 	var cfg CaseConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "CASE_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -193,7 +193,7 @@ server:
 
 	var cfg TypesConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "TYPES_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -221,7 +221,7 @@ app:
 	// Test with debug output to see what's happening
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "DEBUG_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -271,11 +271,10 @@ db:
 
 	var cfg DemoConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: "", // No local file
-		EnvPrefix: "SAMPLE_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "SAMPLE_",
+		Delimiter:  "__",
+		Target:     &cfg,
 	})
 
 	require.NoError(t, err)

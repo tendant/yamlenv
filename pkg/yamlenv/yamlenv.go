@@ -2,6 +2,8 @@ package yamlenv
 
 import (
 	"fmt"
+	"io"
+	"io/fs"
 	"os"
 	"reflect"
 	"strconv"
@@ -11,22 +13,59 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ConfigSource represents a source of configuration data
+type ConfigSource func() (io.ReadCloser, error)
+
 type LoaderOptions struct {
-	BaseFile       string // required
-	LocalFile      string // optional
-	EnvPrefix      string // e.g. "WORKING_"
-	Delimiter      string // nesting delimiter in env, e.g. "__"; "" = no nesting
-	Target         any    // &cfg
-	NormalizeDash  bool   // if true, convert "_" in ENV path to "-" in YAML keys (for kebab-case YAML like "app-name")
-	ForceLowerYAML bool   // if true, normalize YAML keys to lowercase to match ENV mapping
-	DebugKeys      bool   // if true, print final keys for debugging
+	BaseSource     ConfigSource // required: function that returns base config reader
+	LocalSource    ConfigSource // optional: function that returns local override config reader
+	EnvPrefix      string       // e.g. "WORKING_"
+	Delimiter      string       // nesting delimiter in env, e.g. "__"; "" = no nesting
+	Target         any          // &cfg
+	NormalizeDash  bool         // if true, convert "_" in ENV path to "-" in YAML keys (for kebab-case YAML like "app-name")
+	ForceLowerYAML bool         // if true, normalize YAML keys to lowercase to match ENV mapping
+	DebugKeys      bool         // if true, print final keys for debugging
 }
 
-// loadYAMLFile loads a YAML file into the target struct
-func loadYAMLFile(filename string, target any) error {
-	data, err := os.ReadFile(filename)
+// FileSource creates a ConfigSource from a file path
+func FileSource(filename string) ConfigSource {
+	return func() (io.ReadCloser, error) {
+		return os.Open(filename)
+	}
+}
+
+// EmbedSource creates a ConfigSource from an embedded filesystem
+func EmbedSource(fsys fs.FS, filename string) ConfigSource {
+	return func() (io.ReadCloser, error) {
+		file, err := fsys.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+		return file, nil
+	}
+}
+
+// ReaderSource creates a ConfigSource from an io.Reader (useful for testing)
+func ReaderSource(reader io.Reader) ConfigSource {
+	return func() (io.ReadCloser, error) {
+		if rc, ok := reader.(io.ReadCloser); ok {
+			return rc, nil
+		}
+		return io.NopCloser(reader), nil
+	}
+}
+
+// loadYAMLFromSource loads YAML from a ConfigSource into the target struct
+func loadYAMLFromSource(source ConfigSource, target any) error {
+	reader, err := source()
 	if err != nil {
-		return fmt.Errorf("read file %s: %w", filename, err)
+		return fmt.Errorf("open config source: %w", err)
+	}
+	defer reader.Close()
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return fmt.Errorf("read config data: %w", err)
 	}
 
 	return yaml.Unmarshal(data, target)
@@ -176,17 +215,20 @@ func LoadConfig(opts LoaderOptions) error {
 		return fmt.Errorf("target must be a pointer to struct")
 	}
 
+	// Validate base source
+	if opts.BaseSource == nil {
+		return fmt.Errorf("BaseSource cannot be nil")
+	}
+
 	// 1) Load base YAML
-	if err := loadYAMLFile(opts.BaseFile, opts.Target); err != nil {
-		return fmt.Errorf("load base yaml: %w", err)
+	if err := loadYAMLFromSource(opts.BaseSource, opts.Target); err != nil {
+		return fmt.Errorf("load base config: %w", err)
 	}
 
 	// 2) Load optional local YAML (merges with base)
-	if opts.LocalFile != "" {
-		if _, err := os.Stat(opts.LocalFile); err == nil {
-			if err := loadYAMLFile(opts.LocalFile, opts.Target); err != nil {
-				return fmt.Errorf("load local yaml: %w", err)
-			}
+	if opts.LocalSource != nil {
+		if err := loadYAMLFromSource(opts.LocalSource, opts.Target); err != nil {
+			return fmt.Errorf("load local config: %w", err)
 		}
 	}
 

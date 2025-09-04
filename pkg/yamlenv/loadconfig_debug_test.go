@@ -43,10 +43,10 @@ db:
 
 	var cfg DebugConfig
 	err = LoadConfig(LoaderOptions{
-		BaseFile:  yamlFile,
-		EnvPrefix: "LOADCFG_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource: FileSource(yamlFile),
+		EnvPrefix:  "LOADCFG_",
+		Delimiter:  "__",
+		Target:     &cfg,
 	})
 
 	require.NoError(t, err)

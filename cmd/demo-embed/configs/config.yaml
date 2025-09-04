@@ -1,0 +1,7 @@
+app:
+  name: embedded-app
+  port: 8080
+db:
+  host: embedded-db
+  port: 5432
+timeout: 30s

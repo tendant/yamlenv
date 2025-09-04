@@ -24,10 +24,10 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		EnvPrefix: "TEST_",
-		Delimiter: "", // Empty delimiter should cause validation error
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "TEST_",
+		Delimiter:  "", // Empty delimiter should cause validation error
+		Target:     &cfg,
 	})
 
 	// Should return validation error
@@ -53,10 +53,10 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		EnvPrefix: "", // No env prefix
-		Delimiter: "", // Empty delimiter should be allowed
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "", // No env prefix
+		Delimiter:  "", // Empty delimiter should be allowed
+		Target:     &cfg,
 	})
 
 	// Should succeed
@@ -81,10 +81,10 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		EnvPrefix: "TEST_",
-		Delimiter: "__", // Non-empty delimiter should be allowed
-		Target:    &cfg,
+		BaseSource: FileSource(baseFile),
+		EnvPrefix:  "TEST_",
+		Delimiter:  "__", // Non-empty delimiter should be allowed
+		Target:     &cfg,
 	})
 
 	// Should succeed

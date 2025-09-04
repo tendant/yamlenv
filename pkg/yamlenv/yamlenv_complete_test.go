@@ -33,7 +33,7 @@ version: "1.0.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "WORKING_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -77,11 +77,11 @@ version: "1.1.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: localFile,
-		EnvPrefix: "PRIORITY2_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource:  FileSource(baseFile),
+		LocalSource: FileSource(localFile),
+		EnvPrefix:   "PRIORITY2_",
+		Delimiter:   "__",
+		Target:      &cfg,
 	})
 
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ db:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "DELIM2_",
 		Delimiter: "_",
 		Target:    &cfg,
@@ -141,7 +141,7 @@ app:
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "", // No prefix
 		Delimiter: "__",
 		Target:    &cfg,
@@ -175,7 +175,7 @@ version: "2.1.0"
 
 	var cfg TestConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
+		BaseSource: FileSource(baseFile),
 		EnvPrefix: "COMPLEX2_",
 		Delimiter: "__",
 		Target:    &cfg,
@@ -258,11 +258,11 @@ logging:
 
 	var cfg FullConfig
 	err := LoadConfig(LoaderOptions{
-		BaseFile:  baseFile,
-		LocalFile: localFile,
-		EnvPrefix: "MYAPP_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource:  FileSource(baseFile),
+		LocalSource: FileSource(localFile),
+		EnvPrefix:   "MYAPP_",
+		Delimiter:   "__",
+		Target:      &cfg,
 	})
 
 	require.NoError(t, err)

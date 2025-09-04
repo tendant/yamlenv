@@ -22,11 +22,11 @@ type Config struct {
 func main() {
 	var cfg Config
 	err := yamlenv.LoadConfig(yamlenv.LoaderOptions{
-		BaseFile:  "config.yaml",
-		LocalFile: "config.local.yaml",
-		EnvPrefix: "SAMPLE_",
-		Delimiter: "__",
-		Target:    &cfg,
+		BaseSource:  yamlenv.FileSource("config.yaml"),
+		LocalSource: yamlenv.FileSource("config.local.yaml"),
+		EnvPrefix:   "SAMPLE_",
+		Delimiter:   "__",
+		Target:      &cfg,
 	})
 	if err != nil {
 		panic(err)
