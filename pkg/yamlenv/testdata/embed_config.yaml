@@ -1,0 +1,9 @@
+app:
+  name: embed-app
+  port: 8080
+  enabled: true
+db:
+  host: embed-db
+  port: 5432
+  username: embed-user
+timeout: 30s
